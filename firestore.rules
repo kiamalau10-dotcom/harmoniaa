@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- User Validation ---
+    function isValidUser(data) {
+      return data.uid is string && 
+             data.uid == request.auth.uid &&
+             data.username is string && 
+             data.username.size() > 0 && 
+             data.role in ['user', 'admin'] &&
+             (data.role == 'user' || request.auth.token.email == 'admin@socio.com' || isAdmin());
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      
+      allow create: if isSignedIn() && 
+                       isValidId(userId) && 
+                       userId == request.auth.uid && 
+                       isValidUser(incoming());
+      
+      allow update: if isSignedIn() && 
+                       isValidId(userId) && 
+                       userId == request.auth.uid && 
+                       isValidUser(incoming()) && (
+                         isAdmin() ||
+                         (incoming().role == existing().role && 
+                          incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatar', 'isOnline', 'currentRoomId', 'lastActive', 'email', 'coins', 'exp', 'level', 'ownedAvatars', 'lastRewardClaimed', 'loginStreak']))
+                       );
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /chatRooms/{roomId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+      
+      match /messages/{messageId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() && 
+                         incoming().senderId == request.auth.uid &&
+                         incoming().timestamp == request.time;
+        allow update: if isSignedIn() && (
+          isAdmin() ||
+          (isOwner(existing().senderId) && incoming().diff(existing()).affectedKeys().hasOnly(['text', 'type', 'mediaUrl'])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['favorites', 'isPinned']))
+        );
+        allow delete: if isSignedIn() && (isOwner(existing().senderId) || isAdmin());
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and status.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "avatar": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "isOnline": { "type": "boolean" },
+        "currentRoomId": { "type": "string" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "coins": { "type": "number" },
+        "exp": { "type": "number" },
+        "level": { "type": "number" },
+        "ownedAvatars": { "type": "array", "items": { "type": "string" } },
+        "lastRewardClaimed": { "type": "string", "format": "date-time" },
+        "loginStreak": { "type": "number" }
+      },
+      "required": ["uid", "username", "role"]
+    },
+    "ChatRoom": {
+      "title": "Discussion Room",
+      "description": "Metadata for a group chat room.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "activeCount": { "type": "number" },
+        "memberCount": { "type": "number" },
+        "lastMessage": { "type": "string" }
+      }
+    },
+    "Message": {
+      "title": "Chat Message",
+      "description": "A single message in a chat room.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderAvatar": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "voice", "video", "image"] },
+        "mediaUrl": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "replyTo": { "type": "string" },
+        "isPinned": { "type": "boolean" },
+        "favoriteBy": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles collection."
+    },
+    "admins/{adminId}": {
+      "schema": { "type": "object", "properties": { "uid": { "type": "string" } } },
+      "description": "List of admin UIDs."
+    },
+    "chatRooms/{roomId}": {
+      "schema": "ChatRoom",
+      "description": "Discussion groups."
+    },
+    "chatRooms/{roomId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages subcollection."
+    }
+  }
+}

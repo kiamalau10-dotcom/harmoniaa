@@ -4,10 +4,19 @@ import { AIQuestion } from "../types";
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function generateDynamicQuestion(topic: string): Promise<AIQuestion> {
-  const prompt = `Generate a unique sociology case study and a multiple-choice question based on the topic: "${topic}".
-  Focus on Indonesian contexts if possible.
-  The question should be challenging and focus on critical thinking, not just memorization.
-  Include 4 options, a correct answer, and a short explanation.`;
+  const prompt = `Kamu adalah Soci, asisten ahli sosiologi yang cerdas, inspiratif, dan sangat ramah. 
+  Tugasmu adalah membuat sebuah studi kasus sosiologi yang sangat menarik dan mutakhir berdasarkan topik: "${topic}".
+  
+  Ketentuan Penulisan:
+  1. Gunakan Bahasa Indonesia yang sangat natural dan "mengalir". Hindari istilah teknis yang terlalu kaku tanpa penjelasan sederhana.
+  2. Gunakan gaya bahasa yang santai namun tetap edukatif (seperti kakak mentor yang keren).
+  3. Strukturkan teks agar mudah dibaca (digestible), gunakan kalimat yang efektif.
+  4. Fokus pada konteks kontemporer di Indonesia (perubahan sosial digital, inklusi di sekolah, integrasi budaya populer, dll).
+  5. Buat satu pertanyaan pilihan ganda tingkat HOTS (Higher Order Thinking Skills).
+  6. Berikan 4 pilihan jawaban (A, B, C, D).
+  7. Berikan penjelasan yang mendalam namun ringkas.
+  
+  PENTING: Jangan gunakan format markdown di dalam field JSON. Gunakan penulisan normal.`;
 
   try {
     const response = await ai.models.generateContent({

@@ -1,12 +1,44 @@
 import { motion } from 'motion/react';
-import { Target, Heart, Users, Mail, Globe, MapPin, Instagram, Github } from 'lucide-react';
+import { Target, Heart, Users, Mail, Globe, MapPin } from 'lucide-react';
 
 export default function About() {
   const team = [
-    { name: 'Harmono', role: 'Lead Visionary', color: 'bg-baby-blue' },
-    { name: 'Sociyanti', role: 'Social Designer', color: 'bg-soft-pink' },
-    { name: 'Budi Harmoni', role: 'UX Sosiolog', color: 'bg-lilac' },
-    { name: 'Siti Sosiologi', role: 'Content Creator', color: 'bg-sage' },
+    { 
+      name: 'Astrid Bago', 
+      role: 'Guru Pembimbing', 
+      color: 'bg-slate-800',
+      image: 'https://images.unsplash.com/photo-1544717297-fa154daaf544?w=400&h=400&fit=crop'
+    },
+    { 
+      name: 'Hizkia Malau', 
+      role: 'Anggota 1', 
+      color: 'bg-baby-blue',
+      image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop'
+    },
+    { 
+      name: 'Kayla Bangun', 
+      role: 'Anggota 2', 
+      color: 'bg-soft-pink',
+      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop'
+    },
+    { 
+      name: 'Larissa Siahaan', 
+      role: 'Anggota 3', 
+      color: 'bg-lilac',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
+    },
+    { 
+      name: 'Livie Sinaga', 
+      role: 'Anggota 4', 
+      color: 'bg-sage',
+      image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop'
+    },
+    { 
+      name: 'Paulus Sitorus', 
+      role: 'Anggota 5', 
+      color: 'bg-yellow-400',
+      image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop'
+    },
   ];
 
   return (
@@ -18,8 +50,7 @@ export default function About() {
          </div>
          <h1 className="text-4xl md:text-5xl font-bold text-slate-800">Tentang Harmoni Sosial</h1>
          <p className="text-lg text-slate-500 leading-relaxed">
-            Membangun masa depan yang damai melalui pemahaman sosiologi yang mendalam dan aksi sosial yang bermakna. 
-            Kami percaya bahwa harmoni dimulai dari pendidikan dan kepedulian.
+            Harmoni Sosial adalah platform edukasi interaktif yang dirancang khusus untuk pelajar. Kami percaya bahwa memahami sosiologi bukan sekadar menghafal teori, melainkan cara kita mempraktikkan empati, menghargai keberagaman, dan menciptakan aksi sosial yang bermakna di kehidupan sehari-hari.
          </p>
       </section>
 
@@ -39,63 +70,48 @@ export default function About() {
                   <goal.icon size={28} />
                </div>
                <h3 className="text-xl font-bold text-slate-800">{goal.title}</h3>
-               <p className="text-sm text-slate-500 leading-relaxed">{goal.desc}</p>
+               <h4 className="text-sm text-slate-500 leading-relaxed font-medium">{goal.desc}</h4>
             </motion.div>
          ))}
       </div>
 
       {/* Team Section */}
-      <section className="space-y-8">
+      <section className="space-y-10">
          <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold text-slate-800">Anggota Kelompok Kami</h2>
             <p className="text-slate-500 italic">Dikerjakan dengan sepenuh hati demi harmoni negeri.</p>
          </div>
-         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {team.map((member, i) => (
-               <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-50 shadow-sm flex flex-col items-center text-center space-y-4">
-                  <div className={`w-24 h-24 ${member.color} rounded-full border-4 border-slate-50 shadow-inner flex items-center justify-center text-white font-bold text-2xl`}>
-                     {member.name[0]}
+               <motion.div 
+                  key={i} 
+                  whileHover={{ y: -10 }}
+                  className="bg-white p-8 rounded-[2.5rem] border border-slate-50 shadow-sm flex flex-col items-center text-center space-y-5 transition-all group"
+               >
+                  <div className={`relative w-32 h-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl group-hover:shadow-2xl transition-all duration-500`}>
+                     {member.image ? (
+                        <img 
+                           src={member.image} 
+                           alt={member.name} 
+                           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
+                           referrerPolicy="no-referrer"
+                        />
+                     ) : (
+                        <div className={`w-full h-full ${member.color} flex items-center justify-center text-white font-bold text-4xl`}>
+                           {member.name[0]}
+                        </div>
+                     )}
+                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div>
-                     <h4 className="font-bold text-slate-800">{member.name}</h4>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{member.role}</p>
+                     <h4 className="text-xl font-bold text-slate-800 group-hover:text-baby-blue transition-colors">{member.name}</h4>
+                     <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em] mt-1">{member.role}</p>
                   </div>
-                  <div className="flex gap-2">
-                     <button className="p-2 text-slate-300 hover:text-baby-blue transition-colors">
-                        <Instagram size={16} />
-                     </button>
-                     <button className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
-                        <Github size={16} />
-                     </button>
-                  </div>
-               </div>
+               </motion.div>
             ))}
          </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="bg-slate-900 p-8 md:p-12 rounded-[3.5rem] text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl overflow-hidden relative">
-         <div className="relative z-10 space-y-6 max-w-xl">
-            <h2 className="text-3xl md:text-4xl font-bold font-display">Punya Ide Harmoni Lainnya?</h2>
-            <p className="text-white/60">Kami sangat terbuka untuk kolaborasi dan masukan untuk pengembangan platform ini.</p>
-            <div className="space-y-4 pt-4">
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Mail size={18} /></div>
-                  <p className="text-sm">halo@harmonisosial.com</p>
-               </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><MapPin size={18} /></div>
-                  <p className="text-sm">Gedung Sosiologi, Jakarta, Indonesia</p>
-               </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center"><Globe size={18} /></div>
-                  <p className="text-sm">www.harmonisosial.site</p>
-               </div>
-            </div>
-         </div>
-         {/* Decoration */}
-         <div className="absolute top-0 right-0 w-96 h-96 bg-pastel-gradient opacity-20 blur-[100px]" />
-      </section>
     </div>
   );
 }

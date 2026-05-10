@@ -61,6 +61,23 @@ export interface DiscussionRoom {
   memberCount: number;
   activeNow: number;
   category: string;
+  lastMessage?: string;
+}
+
+export type MessageType = 'text' | 'voice' | 'video' | 'image';
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  text: string;
+  type: MessageType;
+  mediaUrl?: string;
+  timestamp: any;
+  replyTo?: string;
+  isPinned?: boolean;
+  favorites?: string[]; // IDs of users who favorited this
 }
 
 export interface StoryNode {
