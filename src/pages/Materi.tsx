@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Lightbulb, ChevronRight, ArrowRight, 
@@ -144,6 +145,7 @@ const MATERI_LIST = [
 ];
 
 export default function Materi() {
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState('All');
   const selectedMateri = MATERI_LIST.find(m => m.id === selectedId);
@@ -159,7 +161,7 @@ export default function Materi() {
   return (
     <div className="min-h-screen bg-[#F8F9FB] font-sans pb-32">
       {/* SOPHISTICATED HERO */}
-      <header className="relative pt-32 pb-24 px-6 overflow-hidden bg-white">
+      <header className="relative pt-24 md:pt-32 pb-16 md:pb-24 px-6 overflow-hidden bg-white">
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
            <div className="absolute top-20 right-20 w-96 h-96 bg-blue-100 rounded-full blur-[100px]" />
            <div className="absolute -bottom-40 -left-20 w-[600px] h-[600px] bg-soft-pink/30 rounded-full blur-[120px]" />
@@ -169,7 +171,7 @@ export default function Materi() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="px-6 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-10 shadow-xl"
+            className="px-6 py-2 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.4em] mb-6 md:mb-10 shadow-xl"
           >
             Socio Learning Hub
           </motion.div>
@@ -178,7 +180,7 @@ export default function Materi() {
             initial={{ opacity: 0, y: 20 }} 
             animate={{ opacity: 1, y: 0 }} 
             transition={{ delay: 0.1 }}
-            className="text-7xl md:text-9xl font-display font-black text-slate-950 tracking-[-0.05em] mb-8 text-center leading-[0.85]"
+            className="text-5xl md:text-7xl lg:text-9xl font-display font-black text-slate-950 tracking-[-0.05em] mb-6 md:mb-8 text-center leading-[0.95]"
           >
             Pustaka <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">Harmoni</span>
           </motion.h1>
@@ -187,7 +189,7 @@ export default function Materi() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             transition={{ delay: 0.2 }}
-            className="text-slate-400 font-bold text-xl max-w-2xl text-center leading-relaxed"
+            className="text-slate-400 font-bold text-lg md:text-xl max-w-2xl text-center leading-relaxed"
           >
             Jelajahi materi sosiologi dengan pendekatan yang lebih dalam, interaktif, dan visual.
           </motion.p>
@@ -255,7 +257,7 @@ export default function Materi() {
 
                   <div className="space-y-4">
                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">{materi.category}</span>
-                    <h3 className={`font-black text-slate-900 leading-[0.95] tracking-tighter ${isHero ? 'text-5xl' : 'text-3xl'}`}>
+                    <h3 className={`font-black text-slate-900 leading-[0.95] tracking-tighter ${isHero ? 'text-3xl md:text-5xl' : 'text-2xl md:text-3xl'}`}>
                       {materi.title}
                     </h3>
                   </div>
@@ -289,7 +291,10 @@ export default function Materi() {
                 </h2>
                 <p className="text-slate-400 font-bold opacity-80">Siap untuk mempraktikkan apa yang kamu pelajari di dunia nyata?</p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                   <button className="px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 transition-transform">
+                   <button 
+                    onClick={() => navigate('/quiz')}
+                    className="px-12 py-5 bg-blue-600 text-white rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-xl hover:scale-105 transition-transform"
+                   >
                       Mulai Aksi Sekarang
                    </button>
                 </div>
@@ -312,54 +317,54 @@ export default function Materi() {
             />
             <motion.div
               layoutId={selectedId!}
-              className="fixed inset-4 md:inset-12 lg:inset-x-32 lg:inset-y-12 bg-white z-[90] rounded-[4rem] shadow-2xl flex flex-col overflow-hidden border-[1px] border-white/10"
+              className="fixed inset-4 md:inset-12 bg-white z-[90] rounded-[2.5rem] md:rounded-[4rem] shadow-2xl flex flex-col overflow-hidden border-[1px] border-white/10"
             >
               <div className="flex-1 overflow-y-auto hide-scrollbar bg-white">
-                <div className="relative h-96 overflow-hidden bg-slate-950">
+                <div className="relative h-64 md:h-96 overflow-hidden bg-slate-950">
                    <div className={`absolute inset-0 opacity-40 ${selectedMateri.color || 'bg-blue-600'}`} />
                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
                    
-                   <div className="absolute bottom-16 left-16 right-16">
-                      <div className="flex items-center gap-4 mb-8">
-                         <div className="p-4 bg-white/10 backdrop-blur-xl rounded-3xl text-white border border-white/20">
+                   <div className="absolute bottom-8 md:bottom-16 left-8 md:left-16 right-8 md:right-16">
+                      <div className="flex items-center gap-4 mb-4 md:mb-8">
+                         <div className="p-3 md:p-4 bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-3xl text-white border border-white/20">
                            {selectedMateri.icon}
                          </div>
-                         <div className="px-6 py-2 bg-white/10 backdrop-blur-md rounded-full text-[10px] font-black text-white uppercase tracking-[0.3em] border border-white/30">
+                         <div className="px-4 md:px-6 py-2 bg-white/10 backdrop-blur-md rounded-full text-[8px] md:text-[10px] font-black text-white uppercase tracking-[0.3em] border border-white/30">
                            {selectedMateri.category}
                          </div>
                       </div>
-                      <h2 className="text-6xl md:text-8xl font-display font-black text-slate-950 tracking-tighter leading-none mb-4">
+                      <h2 className="text-3xl md:text-6xl lg:text-8xl font-display font-black text-slate-950 tracking-tighter leading-none mb-4">
                         {selectedMateri.title}
                       </h2>
                    </div>
 
                    <button 
                     onClick={() => setSelectedId(null)} 
-                    className="absolute top-10 right-10 p-5 bg-white/10 backdrop-blur-md text-white rounded-3xl hover:bg-white/20 transition-all border border-white/10"
+                    className="absolute top-6 md:top-10 right-6 md:right-10 p-3 md:p-5 bg-white/10 backdrop-blur-md text-white rounded-2xl md:rounded-3xl hover:bg-white/20 transition-all border border-white/10"
                   >
-                    <X size={32} />
+                    <X size={24} md:size={32} />
                   </button>
                 </div>
 
-                <div className="p-16 max-w-5xl mx-auto space-y-24">
-                   <div className="prose prose-2xl">
-                     <p className="text-3xl text-slate-500 font-display italic leading-relaxed border-l-8 border-blue-600 pl-12 py-2">
+                <div className="p-8 md:p-16 max-w-5xl mx-auto space-y-12 md:space-y-24">
+                   <div className="prose prose-lg md:prose-2xl">
+                     <p className="text-xl md:text-3xl text-slate-500 font-display italic leading-relaxed border-l-4 md:border-l-8 border-blue-600 pl-6 md:pl-12 py-2">
                         {selectedMateri.content}
                      </p>
                    </div>
 
                    {selectedMateri.theory && (
-                     <section className="p-16 bg-slate-50 rounded-[4rem] border-2 border-slate-100">
-                        <h4 className="text-xs font-black uppercase tracking-[0.4em] text-blue-600 mb-8 border-b-2 border-blue-100 pb-4 inline-block">Landasan Teori</h4>
-                        <div className="space-y-12">
-                           <p className="text-2xl font-black text-slate-900 leading-snug">{selectedMateri.theory}</p>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <section className="p-8 md:p-16 bg-slate-50 rounded-[2.5rem] md:rounded-[4rem] border-2 border-slate-100">
+                        <h4 className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-blue-600 mb-6 md:mb-8 border-b-2 border-blue-100 pb-4 inline-block">Landasan Teori</h4>
+                        <div className="space-y-8 md:space-y-12">
+                           <p className="text-lg md:text-2xl font-black text-slate-900 leading-snug">{selectedMateri.theory}</p>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                               {selectedMateri.indicators?.map((ind, i) => (
-                                 <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-600 transition-all">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                       <Check size={20} />
+                                 <div key={i} className="bg-white p-4 md:p-6 rounded-2xl md:rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-blue-600 transition-all">
+                                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                       <Check size={16} md:size={20} />
                                     </div>
-                                    <span className="font-bold text-slate-700">{ind}</span>
+                                    <span className="font-bold text-sm md:text-base text-slate-700">{ind}</span>
                                  </div>
                               ))}
                            </div>

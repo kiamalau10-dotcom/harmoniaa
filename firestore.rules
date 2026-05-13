@@ -16,7 +16,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'admin@socio.com'
+      );
     }
 
     function incoming() {
@@ -44,7 +47,7 @@ service cloud.firestore {
     // --- Rules ---
 
     match /users/{userId} {
-      allow get: if isSignedIn();
+      allow get: if true;
       allow list: if isSignedIn();
       
       allow create: if isSignedIn() && 
@@ -58,7 +61,7 @@ service cloud.firestore {
                        isValidUser(incoming()) && (
                          isAdmin() ||
                          (incoming().role == existing().role && 
-                          incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatar', 'isOnline', 'currentRoomId', 'lastActive', 'email', 'coins', 'exp', 'level', 'ownedAvatars', 'lastRewardClaimed', 'loginStreak']))
+                          incoming().diff(existing()).affectedKeys().hasOnly(['username', 'avatar', 'isOnline', 'currentRoomId', 'lastActive', 'email', 'coins', 'exp', 'level', 'ownedAvatars', 'lastRewardClaimed', 'loginStreak', 'completedChallenges', 'badges']))
                        );
     }
 
@@ -83,6 +86,61 @@ service cloud.firestore {
         );
         allow delete: if isSignedIn() && (isOwner(existing().senderId) || isAdmin());
       }
+    }
+
+    match /activities/{activityId} {
+      allow read: if isAdmin();
+      allow create: if isSignedIn() && 
+                       isValidId(activityId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().timestamp == request.time;
+    }
+
+    match /discussionPosts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && 
+                       isValidId(postId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().timestamp == request.time &&
+                       incoming().votes == 0 &&
+                       incoming().replyCount == 0;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (isOwner(existing().authorId) && incoming().diff(existing()).affectedKeys().hasOnly(['content', 'category'])) ||
+        (incoming().diff(existing()).affectedKeys().hasOnly(['votes', 'votedBy']))
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().authorId) || isAdmin());
+      
+      match /replies/{replyId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn() &&
+                         isValidId(replyId) &&
+                         incoming().authorId == request.auth.uid &&
+                         incoming().timestamp == request.time;
+        allow delete: if isSignedIn() && (isOwner(existing().authorId) || isAdmin());
+      }
+    }
+
+    match /polls/{pollId} {
+      allow read: if isSignedIn();
+      allow update: if isSignedIn() && 
+                       isValidId(pollId) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['options', 'voters', 'totalVotes']) &&
+                       !existing().voters.hasAny([request.auth.uid]);
+    }
+
+    match /sharedWorks/{workId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && 
+                       isValidId(workId) &&
+                       incoming().authorId == request.auth.uid &&
+                       incoming().timestamp == request.time;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (isOwner(existing().authorId) && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'files'])) ||
+        (incoming().diff(existing()).affectedKeys().hasOnly(['likes', 'likedBy']))
+      );
+      allow delete: if isSignedIn() && (isOwner(existing().authorId) || isAdmin());
     }
   }
 }

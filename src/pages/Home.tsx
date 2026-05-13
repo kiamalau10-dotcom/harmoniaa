@@ -1,11 +1,40 @@
-import { motion } from 'motion/react';
-import { ArrowRight, Play, Star, Users, Heart, BookOpen, Trophy, LayoutDashboard, Gamepad2, Info, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { 
+  ArrowRight, Play, Star, Users, Heart, BookOpen, Trophy, 
+  LayoutDashboard, Gamepad2, Info, Lock, Activity, Image as ImageIcon,
+  MessageCircle, Zap
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import { SociIcon, HarmoIcon } from '../components/Mascots';
+import { useState, useEffect } from 'react';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { SharedWork } from '../types';
 
 export default function Home() {
   const { profile } = useAuth();
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [recentWorks, setRecentWorks] = useState<SharedWork[]>([]);
+
+  useEffect(() => {
+    // Recent Activities
+    const qAct = query(collection(db, 'activities'), orderBy('timestamp', 'desc'), limit(5));
+    const unsubAct = onSnapshot(qAct, (snap) => {
+      setRecentActivities(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    // Recent Works
+    const qWork = query(collection(db, 'sharedWorks'), orderBy('timestamp', 'desc'), limit(3));
+    const unsubWork = onSnapshot(qWork, (snap) => {
+      setRecentWorks(snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as SharedWork)));
+    });
+
+    return () => {
+      unsubAct();
+      unsubWork();
+    };
+  }, []);
   
   const features = [
     { icon: LayoutDashboard, title: 'Dashboard', desc: 'Pantau progress belajar dan badge pencapaianmu.', color: 'bg-baby-blue', border: 'border-baby-blue', to: '/dashboard', private: true },
@@ -79,23 +108,107 @@ export default function Home() {
       </section>
 
       {/* Mascot Corner */}
-      <section className="bg-lilac/10 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 border border-lilac/20">
-        <div className="flex -space-x-4">
-          <div className="w-24 h-24 bg-baby-blue rounded-full border-4 border-white flex items-center justify-center shadow-lg overflow-hidden p-2">
-            <SociIcon />
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left: Mascot & Call to Action */}
+        <div className="lg:col-span-2 bg-lilac/10 rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 border border-lilac/20">
+          <div className="flex -space-x-4">
+            <div className="w-24 h-24 bg-baby-blue rounded-full border-4 border-white flex items-center justify-center shadow-lg overflow-hidden p-2">
+              <SociIcon />
+            </div>
+            <div className="w-24 h-24 bg-soft-pink rounded-full border-4 border-white flex items-center justify-center shadow-lg overflow-hidden p-2">
+              <HarmoIcon />
+            </div>
           </div>
-          <div className="w-24 h-24 bg-soft-pink rounded-full border-4 border-white flex items-center justify-center shadow-lg overflow-hidden p-2">
-            <HarmoIcon />
+          <div className="flex-1 text-center md:text-left space-y-2">
+            <h3 className="text-2xl font-bold text-slate-800">Kenalin Teman Belajarmu!</h3>
+            <p className="text-slate-500 font-medium">Soci & Harmo akan menemanimu menjelajahi tantangan sosiologi di setiap level.</p>
+          </div>
+          <Link to="/about" className="px-6 py-3 bg-white text-[#553C9A] font-black rounded-2xl shadow-sm hover:shadow-md transition-all border-2 border-slate-100 uppercase tracking-widest text-xs">
+            Kenalan Yuk!
+          </Link>
+        </div>
+
+        {/* Right: Real-time Activity Feed */}
+        <div className="bg-white rounded-[2.5rem] p-8 border-4 border-slate-50 shadow-sm flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-black text-slate-800 flex items-center gap-2">
+              <Activity size={18} className="text-soft-pink" />
+              Aktivitas Terbaru
+            </h3>
+            <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+          </div>
+          <div className="space-y-4 flex-1">
+            <AnimatePresence mode="popLayout">
+              {recentActivities.map((act) => (
+                <motion.div 
+                  key={act.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className="flex gap-3 items-start"
+                >
+                  <div className={`mt-1 p-1.5 rounded-lg shrink-0 ${
+                    act.type === 'login' ? 'bg-blue-50 text-blue-500' :
+                    act.type === 'action' ? 'bg-amber-50 text-amber-500' :
+                    'bg-slate-50 text-slate-400'
+                  }`}>
+                    {act.type === 'login' ? <Zap size={10} /> : 
+                     act.type === 'action' ? <Star size={10} /> : <Activity size={10} />}
+                  </div>
+                  <div className="space-y-0.5 overflow-hidden">
+                    <p className="text-xs font-bold text-slate-800 truncate">{act.description}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      {act.timestamp?.toDate?.().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Baru saja'}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {recentActivities.length === 0 && (
+              <p className="text-xs text-slate-300 italic text-center py-4">Belum ada aktivitas baru...</p>
+            )}
           </div>
         </div>
-        <div className="flex-1 text-center md:text-left space-y-2">
-          <h3 className="text-2xl font-bold text-slate-800">Kenalin Teman Belajarmu!</h3>
-          <p className="text-slate-500 font-medium">Soci & Harmo akan menemanimu menjelajahi tantangan sosiologi di setiap level.</p>
-        </div>
-        <Link to="/about" className="px-6 py-3 bg-white text-[#553C9A] font-black rounded-2xl shadow-sm hover:shadow-md transition-all border-2 border-slate-100 uppercase tracking-widest text-xs">
-          Kenalan Yuk!
-        </Link>
       </section>
+
+      {/* Recent Works Gallery Snippet */}
+      {recentWorks.length > 0 && (
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-black text-text-primary flex items-center gap-3">
+               <ImageIcon size={28} className="text-baby-blue" />
+               Karya Terbaru
+            </h3>
+            <Link to="/share-yours" className="text-xs font-black text-baby-blue uppercase tracking-widest hover:underline">
+              Lihat Semua Galeri
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {recentWorks.map((work) => (
+              <Link key={work.id} to="/share-yours" className="block group">
+                <div className="bg-white rounded-[2rem] border-4 border-white shadow-xl overflow-hidden hover:-translate-y-1 transition-all">
+                  <div className="h-40 bg-slate-50 relative overflow-hidden flex items-center justify-center">
+                    {work.files && work.files[0] ? (
+                      work.files[0].type.startsWith('image/') ? (
+                        <img src={work.files[0].url} className="w-full h-full object-cover" alt="work" referrerPolicy="no-referrer" />
+                      ) : (
+                        <Zap size={32} className="text-slate-200" />
+                      )
+                    ) : (
+                      <MessageCircle size={32} className="text-slate-200" />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  </div>
+                  <div className="p-6">
+                    <h4 className="font-black text-slate-800 truncate group-hover:text-baby-blue transition-colors">{work.title}</h4>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Oleh {work.authorName}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

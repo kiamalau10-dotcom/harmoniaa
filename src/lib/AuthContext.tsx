@@ -8,7 +8,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc, onSnapshot, collection, addDoc } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from './firebase';
 
 interface UserProfile {
@@ -29,6 +29,14 @@ interface UserProfile {
   lastRewardClaimed?: any;
   loginStreak: number;
   badges: string[];
+  completedChallenges: string[];
+}
+
+interface ActivityData {
+  type: 'page_view' | 'action' | 'login' | 'logout';
+  path?: string;
+  description?: string;
+  metadata?: any;
 }
 
 interface AuthContextType {
@@ -40,6 +48,8 @@ interface AuthContextType {
   register: (username: string, email: string, pass: string, avatar: string) => Promise<void>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  logActivity: (data: ActivityData) => Promise<void>;
+  claimChallenge: (challengeId: string, reward: number, exp: number) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,6 +59,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(!window.navigator.onLine);
+
+  const logActivity = async (data: ActivityData) => {
+    if (!auth.currentUser) return;
+    try {
+      await addDoc(collection(db, 'activities'), {
+        userId: auth.currentUser.uid,
+        timestamp: serverTimestamp(),
+        ...data
+      });
+    } catch (error) {
+      console.error("Failed to log activity:", error);
+    }
+  };
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -156,12 +179,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const email = isAdminUser ? 'admin@socio.com' : `${username.toLowerCase().replace(/\s/g, '')}@socio.app`;
     
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
+      const cred = await signInWithEmailAndPassword(auth, email, pass);
+      
+      // If it's the specific admin user, ensure they are in the admins collection
+      if (isAdminUser) {
+        try {
+          const adminDocRef = doc(db, 'admins', cred.user.uid);
+          const adminDoc = await getDoc(adminDocRef);
+          if (!adminDoc.exists()) {
+            await setDoc(adminDocRef, { uid: cred.user.uid, updated: serverTimestamp() });
+          }
+        } catch (e) {
+          console.warn("Failed to ensure admin collection state:", e);
+        }
+      }
+
+      // Log successful login
+      await addDoc(collection(db, 'activities'), {
+        userId: cred.user.uid,
+        timestamp: serverTimestamp(),
+        type: 'login',
+        description: `User ${username} logged in`
+      });
     } catch (error: any) {
       console.error("Login Error:", error.code, error.message);
       
-      // Auto-create admin if specifically logged in with 123456
-      if (isAdminUser && pass === '123456' && (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential')) {
+      const isNewAdminPassword = isAdminUser && pass === '123456';
+      
+      // Auto-create admin if specifically logged in with 123456 and it doesn't exist
+      if (isNewAdminPassword && (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-email')) {
         try {
           const cred = await createUserWithEmailAndPassword(auth, email, pass);
           const newProfile: UserProfile = {
@@ -181,13 +227,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ownedAvatars: ['cat', 'dog', 'rabbit', 'panda'],
             loginStreak: 1,
             lastRewardClaimed: serverTimestamp(),
-            badges: ['Pioneer', 'SuperAdmin']
+            badges: ['Pioneer', 'SuperAdmin'],
+            completedChallenges: []
           };
           await setDoc(doc(db, 'users', cred.user.uid), newProfile);
           await setDoc(doc(db, 'admins', cred.user.uid), { uid: cred.user.uid });
           setProfile(newProfile);
           return;
         } catch (createErr: any) {
+          if (createErr.code === 'auth/email-already-in-use') {
+            throw new Error('Akun Admin sudah ada tapi Password salah! Silakan gunakan password yang benar atau hubungi sistem.');
+          }
           if (createErr.code === 'auth/operation-not-allowed') {
             throw new Error('Fitur Login Belum Aktif! Silakan aktifkan "Email/Password" di Firebase Console Anda.');
           }
@@ -200,6 +250,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         friendlyMsg = 'Fitur Login Belum Aktif! Silakan aktifkan "Email/Password" di Firebase Console Anda.';
       } else if (error.code === 'auth/network-request-failed') {
         friendlyMsg = 'Koneksi internet bermasalah.';
+      } else if (error.code === 'auth/too-many-requests') {
+        friendlyMsg = 'Terlalu banyak percobaan login. Silakan coba lagi nanti.';
       }
       throw new Error(friendlyMsg);
     }
@@ -225,10 +277,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ownedAvatars: ['cat', 'dog'], // Starting free avatars
         loginStreak: 1,
         lastRewardClaimed: serverTimestamp(),
-        badges: []
+        badges: [],
+        completedChallenges: []
       };
       await setDoc(doc(db, 'users', cred.user.uid), newProfile);
       setProfile(newProfile);
+      await addDoc(collection(db, 'activities'), {
+        userId: cred.user.uid,
+        timestamp: serverTimestamp(),
+        type: 'login',
+        description: `User ${username} registered and logged in`
+      });
     } catch (error: any) {
       console.error("Register detail error:", error);
       let friendlyMsg = error.message;
@@ -246,6 +305,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     if (user) {
       try {
+        await logActivity({
+          type: 'logout',
+          description: `User ${profile?.username || user.uid} logged out`
+        });
         await updateDoc(doc(db, 'users', user.uid), {
           isOnline: false,
           currentRoomId: null,
@@ -279,18 +342,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ownedAvatars: ['cat', 'dog'],
           loginStreak: 1,
           lastRewardClaimed: serverTimestamp(),
-          badges: []
+          badges: [],
+          completedChallenges: []
         };
         await setDoc(doc(db, 'users', cred.user.uid), newProfile);
         setProfile(newProfile);
       }
+      await addDoc(collection(db, 'activities'), {
+        userId: cred.user.uid,
+        timestamp: serverTimestamp(),
+        type: 'login',
+        description: `User ${cred.user.displayName} logged in via Google`
+      });
     } catch (error) {
       console.error(error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isOffline, login, register, logout, loginWithGoogle }}>
+    <AuthContext.Provider value={{ user, profile, loading, isOffline, login, register, logout, loginWithGoogle, logActivity }}>
       {children}
     </AuthContext.Provider>
   );

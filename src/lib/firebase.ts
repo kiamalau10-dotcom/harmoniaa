@@ -45,13 +45,16 @@ interface FirestoreErrorInfo {
 }
 
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  // Use a small timeout or check if we can wait for auth to be sure
+  const currentAuth = auth.currentUser;
+  
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),
     authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
+      userId: currentAuth?.uid || null,
+      email: currentAuth?.email || null,
+      emailVerified: currentAuth?.emailVerified || null,
+      isAnonymous: currentAuth?.isAnonymous || null,
     },
     operationType,
     path

@@ -94,11 +94,60 @@ export interface Choice {
 
 export interface DiscussionPost {
   id: string;
-  author: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
   content: string;
-  timestamp: string;
-  votes: number;
   category: string;
+  votes: number;
+  votedBy: string[];
+  replyCount: number;
+  timestamp: any;
+  isAnonymous: boolean;
+}
+
+export interface DiscussionPostReply {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  timestamp: any;
+}
+
+export interface PollOption {
+  label: string;
+  votes: number;
+}
+
+export interface Poll {
+  id: string;
+  question: string;
+  options: PollOption[];
+  voters: string[];
+  totalVotes: number;
+  isActive: boolean;
+}
+
+export interface MediaFile {
+  name: string;
+  type: string;
+  size: string;
+  url: string;
+}
+
+export interface SharedWork {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  title: string;
+  content: string;
+  files: MediaFile[];
+  likes: number;
+  likedBy: string[];
+  timestamp: any;
 }
 
 export interface DailyTip {

@@ -2,6 +2,7 @@
   "name": "Remix: Harmoni Sosial v2: Soci-AI Arena",
   "description": "Platform belajar Sosiologi tercanggih dengan Dynamic AI Question Engine, Social Study Rooms, Labirin Hub, dan Quiz Battle Multiplayer.",
   "requestFramePermissions": [
+    "camera",
     "microphone"
   ],
   "majorCapabilities": []

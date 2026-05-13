@@ -1,13 +1,20 @@
 import { motion } from 'motion/react';
-import { CheckCircle, Camera, Award, Calendar, ArrowRight, Heart, Users } from 'lucide-react';
+import { CheckCircle, Camera, Award, Calendar, ArrowRight, Heart, Users, CheckCircle2, Loader2 } from 'lucide-react';
+import { useAuth } from '../lib/AuthContext';
+import { useState } from 'react';
 
 export default function Challenge() {
+  const { profile, claimChallenge } = useAuth();
+  const [claiming, setClaiming] = useState<string | null>(null);
+
   const challenges = [
     {
       id: '1',
       title: 'Ajak Makan Teman Baru',
       desc: 'Cari teman yang sedang duduk sendirian saat istirahat dan ajak dia makan bersama.',
       xp: '+100 XP',
+      xpVal: 100,
+      reward: 200,
       badge: 'Social Connector',
       icon: Users,
       color: 'bg-baby-blue'
@@ -17,6 +24,8 @@ export default function Challenge() {
       title: 'Apresiasi Petugas Sekolah',
       desc: 'Berikan apresiasi kecil (kata-kata atau snack) kepada petugas kebersihan atau satpam sekolah.',
       xp: '+150 XP',
+      xpVal: 150,
+      reward: 300,
       badge: 'Kindness Hero',
       icon: Heart,
       color: 'bg-soft-pink'
@@ -26,11 +35,23 @@ export default function Challenge() {
       title: 'Diskusi Sehat Tanpa Debat',
       desc: 'Selesaikan diskusi di Circle Discussion tanpa menggunakan kata-kata kasar meskipun berbeda pendapat.',
       xp: '+200 XP',
+      xpVal: 200,
+      reward: 400,
       badge: 'Harmony Master',
       icon: Award,
       color: 'bg-lilac'
     }
   ];
+
+  const handleClaim = async (id: string, reward: number, exp: number) => {
+    if (!profile || claiming) return;
+    setClaiming(id);
+    try {
+      await claimChallenge(id, reward, exp);
+    } finally {
+      setClaiming(null);
+    }
+  };
 
   return (
     <div className="space-y-10 pb-12">
@@ -100,9 +121,21 @@ export default function Challenge() {
                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center text-[8px] text-white">★</div>
                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{challenge.badge}</p>
                </div>
-               <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-soft-pink hover:text-white transition-all">
-                 <Camera size={16} />
-               </button>
+               
+               {profile?.completedChallenges?.includes(challenge.id) ? (
+                 <div className="bg-sage text-white p-2 rounded-full shadow-lg" title="Selesai">
+                    <CheckCircle2 size={16} />
+                 </div>
+               ) : (
+                 <button 
+                  onClick={() => handleClaim(challenge.id, challenge.reward, challenge.xpVal)}
+                  disabled={!!claiming}
+                  className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-soft-pink hover:text-white transition-all shadow-sm"
+                  title="Claim Challenge"
+                >
+                  {claiming === challenge.id ? <Loader2 size={16} className="animate-spin" /> : <Camera size={18} />}
+                </button>
+               )}
             </div>
           </motion.div>
         ))}

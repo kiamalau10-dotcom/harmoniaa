@@ -17,6 +17,8 @@
         "exp": { "type": "number" },
         "level": { "type": "number" },
         "ownedAvatars": { "type": "array", "items": { "type": "string" } },
+        "completedChallenges": { "type": "array", "items": { "type": "string" } },
+        "badges": { "type": "array", "items": { "type": "string" } },
         "lastRewardClaimed": { "type": "string", "format": "date-time" },
         "loginStreak": { "type": "number" }
       },
@@ -53,6 +55,101 @@
         "isPinned": { "type": "boolean" },
         "favoriteBy": { "type": "array", "items": { "type": "string" } }
       }
+    },
+    "Activity": {
+      "title": "User Activity",
+      "description": "Logs of user activities on the platform.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["page_view", "action", "login", "logout"] },
+        "path": { "type": "string" },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "DiscussionPost": {
+      "title": "Discussion Post",
+      "description": "A forum thread started by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "votes": { "type": "number" },
+        "votedBy": { "type": "array", "items": { "type": "string" } },
+        "replyCount": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "isAnonymous": { "type": "boolean" }
+      }
+    },
+    "DiscussionPostReply": {
+      "title": "Discussion Post Reply",
+      "description": "A comment on a discussion post.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Poll": {
+      "title": "Poll",
+      "description": "A survey for users to vote on.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "question": { "type": "string" },
+        "options": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "label": { "type": "string" },
+              "votes": { "type": "number" }
+            }
+          } 
+        },
+        "voters": { "type": "array", "items": { "type": "string" } },
+        "totalVotes": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "SharedWork": {
+      "title": "Shared Work",
+      "description": "Creative work shared by a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorAvatar": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "files": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "size": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          } 
+        },
+        "likes": { "type": "number" },
+        "likedBy": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "firestore": {
@@ -71,6 +168,26 @@
     "chatRooms/{roomId}/messages/{messageId}": {
       "schema": "Message",
       "description": "Messages subcollection."
+    },
+    "activities/{activityId}": {
+      "schema": "Activity",
+      "description": "Audit logs of user interactions."
+    },
+    "discussionPosts/{postId}": {
+      "schema": "DiscussionPost",
+      "description": "General discussion forum posts."
+    },
+    "discussionPosts/{postId}/replies/{replyId}": {
+      "schema": "DiscussionPostReply",
+      "description": "Replies to forum posts."
+    },
+    "polls/{pollId}": {
+      "schema": "Poll",
+      "description": "Global or group polls."
+    },
+    "sharedWorks/{workId}": {
+      "schema": "SharedWork",
+      "description": "User creations and shared files."
     }
   }
 }

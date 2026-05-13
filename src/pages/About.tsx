@@ -7,37 +7,37 @@ export default function About() {
       name: 'Astrid Bago', 
       role: 'Guru Pembimbing', 
       color: 'bg-slate-800',
-      image: 'https://images.unsplash.com/photo-1544717297-fa154daaf544?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Astrid&backgroundColor=b6e3f4'
     },
     { 
       name: 'Hizkia Malau', 
       role: 'Anggota 1', 
       color: 'bg-baby-blue',
-      image: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Hizkia&backgroundColor=c0aede'
     },
     { 
       name: 'Kayla Bangun', 
       role: 'Anggota 2', 
       color: 'bg-soft-pink',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Kayla&backgroundColor=ffdfbf'
     },
     { 
       name: 'Larissa Siahaan', 
       role: 'Anggota 3', 
       color: 'bg-lilac',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Larissa&backgroundColor=d1d4f9'
     },
     { 
       name: 'Livie Sinaga', 
       role: 'Anggota 4', 
       color: 'bg-sage',
-      image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Livie&backgroundColor=ffd5dc'
     },
     { 
       name: 'Paulus Sitorus', 
       role: 'Anggota 5', 
       color: 'bg-yellow-400',
-      image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop'
+      image: 'https://api.dicebear.com/7.x/notionists/svg?seed=Paulus&backgroundColor=ffdfbf'
     },
   ];
 

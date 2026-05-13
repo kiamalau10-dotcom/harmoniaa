@@ -73,11 +73,20 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [dailyTip, setDailyTip] = useState(DAILY_TIPS[0]);
-  const { profile, logout, isOffline, user } = useAuth();
+  const { profile, logout, isOffline, user, logActivity } = useAuth();
 
   useEffect(() => {
     const randomTip = DAILY_TIPS[Math.floor(Math.random() * DAILY_TIPS.length)];
     setDailyTip(randomTip);
+
+    // Track Page View
+    if (user) {
+      logActivity({
+        type: 'page_view',
+        path: location.pathname,
+        description: `Viewed ${location.pathname}`
+      });
+    }
   }, [location.pathname]);
 
   return (
@@ -97,19 +106,32 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 gap-6 w-full relative">
+      <div className="flex flex-1 w-full relative">
         {/* Mobile Toggle */}
       <button 
-        className="fixed top-4 left-4 z-50 p-2 bg-white rounded-xl shadow-md lg:hidden border-2 border-sidebar-border"
+        className="fixed top-24 left-4 z-50 p-2 bg-white rounded-xl shadow-md lg:hidden border-2 border-sidebar-border"
         onClick={() => setSidebarOpen(!isSidebarOpen)}
       >
         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
+      {/* Backdrop for mobile */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-6 z-40 w-64 bg-sidebar-bg rounded-4xl p-6 flex flex-col border-4 border-sidebar-border card-shadow transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[calc(100%+24px)]'}
+        fixed inset-y-6 left-6 z-50 w-64 bg-sidebar-bg rounded-4xl p-6 flex flex-col border-4 border-sidebar-border card-shadow transform transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[calc(100%+48px)] lg:translate-x-0'}
       `}>
         <div className="flex items-center gap-3 mb-10 px-2">
           <div className="w-10 h-10 bg-baby-blue rounded-full flex items-center justify-center border-2 border-white text-xl shadow-sm">
@@ -120,7 +142,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           </h1>
         </div>
 
-        <nav className="flex flex-col gap-2 flex-grow">
+        <nav className="flex flex-col gap-2 flex-grow overflow-y-auto pr-2 hide-scrollbar">
           <NavItem to="/" icon={HomeIcon} label="Home" active={location.pathname === '/'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" active={location.pathname === '/dashboard'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/materi" icon={BookOpen} label="Materi" active={location.pathname === '/materi'} onClick={() => setSidebarOpen(false)} />
@@ -128,6 +150,8 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <NavItem to="/maze" icon={LayoutGrid} label="Maze Labirin" active={location.pathname === '/maze'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/study-room" icon={Users} label="Study Room" active={location.pathname === '/study-room'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/quiz" icon={Trophy} label="Quiz Battle" active={location.pathname === '/quiz'} onClick={() => setSidebarOpen(false)} />
+          <NavItem to="/discussion" icon={Users} label="Discussion Hub" active={location.pathname === '/discussion'} onClick={() => setSidebarOpen(false)} />
+          <NavItem to="/challenge" icon={CheckCircle} label="Harmoni Challenge" active={location.pathname === '/challenge'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/avatars" icon={Users} label="Avatar Store" active={location.pathname === '/avatars'} onClick={() => setSidebarOpen(false)} />
           <NavItem to="/share-yours" icon={Send} label="Share Yours" active={location.pathname === '/share-yours'} onClick={() => setSidebarOpen(false)} />
           {profile?.role === 'admin' && (
@@ -188,10 +212,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col gap-6 lg:max-w-[calc(100vw-16rem-48px)] min-h-full">
-        <header className="h-44 bg-gradient-to-r from-baby-blue to-lilac rounded-4xl p-8 flex items-center justify-between relative overflow-hidden border-4 border-white card-shadow">
-          <div className="z-10">
-            <h2 className="text-4xl font-display font-black text-[#2D3748] mb-1">Soci & Harmo Hub</h2>
+      <main className="flex-1 flex flex-col gap-6 lg:ml-72 min-h-full transition-all duration-300 w-full overflow-x-hidden">
+        <header className="min-h-[120px] md:h-44 bg-gradient-to-r from-baby-blue to-lilac rounded-3xl md:rounded-4xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between relative overflow-hidden border-4 border-white card-shadow">
+          <div className="z-10 text-center md:text-left">
+            <h2 className="text-2xl md:text-4xl font-display font-black text-[#2D3748] mb-1">Soci & Harmo Hub</h2>
             <p className="text-[#4A5568] font-medium">Harmoni Sosial dimulai dari pilihan cerdasmu hari ini!</p>
             <Link to="/materi" className="inline-block mt-4 bg-white text-[#553C9A] px-6 py-2 rounded-full font-black text-sm uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">
               Mulai Belajar
@@ -246,31 +270,37 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <Layout>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/materi" element={<MateriPage />} />
-            <Route path="/about" element={<AboutPage />} />
+        <Routes>
+          {/* Public Authentication Routes - No Layout */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-            {/* User Protected Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/game" element={<ProtectedRoute><GamePage /></ProtectedRoute>} />
-            <Route path="/maze" element={<ProtectedRoute><MazeGamePage /></ProtectedRoute>} />
-            <Route path="/study-room" element={<ProtectedRoute><StudyRoomPage /></ProtectedRoute>} />
-            <Route path="/quiz" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
-            <Route path="/avatars" element={<ProtectedRoute><AvatarStorePage /></ProtectedRoute>} />
-            <Route path="/share-yours" element={<ProtectedRoute><ShareYoursPage /></ProtectedRoute>} />
-            <Route path="/challenge" element={<ProtectedRoute><ChallengePage /></ProtectedRoute>} />
-            <Route path="/edu-case" element={<ProtectedRoute><EduCasePage /></ProtectedRoute>} />
-            <Route path="/discussion" element={<ProtectedRoute><DiscussionPage /></ProtectedRoute>} />
-
-            {/* Admin only Route */}
-            <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
-          </Routes>
-        </Layout>
+          {/* Protected Main App Routes - With Layout */}
+          <Route path="*" element={
+            <ProtectedRoute>
+              <Layout>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/materi" element={<MateriPage />} />
+                  <Route path="/game" element={<GamePage />} />
+                  <Route path="/maze" element={<MazeGamePage />} />
+                  <Route path="/study-room" element={<StudyRoomPage />} />
+                  <Route path="/quiz" element={<QuizPage />} />
+                  <Route path="/avatars" element={<AvatarStorePage />} />
+                  <Route path="/share-yours" element={<ShareYoursPage />} />
+                  <Route path="/challenge" element={<ChallengePage />} />
+                  <Route path="/edu-case" element={<EduCasePage />} />
+                  <Route path="/discussion" element={<DiscussionPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  
+                  {/* Admin only Route */}
+                  <Route path="/admin" element={<ProtectedRoute adminOnly><AdminPage /></ProtectedRoute>} />
+                </Routes>
+              </Layout>
+            </ProtectedRoute>
+          } />
+        </Routes>
       </Router>
     </AuthProvider>
   );
